@@ -19,13 +19,30 @@
 	 (sign (cryptos:sha256
 		(concatenate
 		 'string
-		 app-id (input word) salt time app-key))))
-    (dex:post "https://openapi.youdao.com/api"
-		 :content `(("q" . ,word)
-			    ("from" . "en")
-			    ("to" . "zh-CHS")
-			    ("appKey" . ,app-id)
-			    ("salt" . ,salt)
-			    ("sign" . ,sign)
-			    ("signType" . "v3")
-			    ("curtime" . ,time)))))
+		 app-id (input word) salt time app-key)))
+	 (body (dex:post "https://openapi.youdao.com/api"
+			 :content `(("q" . ,word)
+				    ("from" . "en")
+				    ("to" . "zh-CHS")
+				    ("appKey" . ,app-id)
+				    ("salt" . ,salt)
+				    ("sign" . ,sign)
+				    ("signType" . "v3")
+				    ("curtime" . ,time))))
+	 (result (jonathan:parse body :as :hash-table))
+	 (basic (gethash "basic" result))
+	 (translation (car (gethash "translation" result)))
+	 (explains (gethash "explains" basic))
+	 (phonetic (gethash "phonetic" basic))
+	 (webs (gethash "web" result)))
+
+    (format t "~a [~a] ~a~%" word phonetic translation)
+
+    (format t "  Word Explanation:~%")
+    (dolist (explain explains)
+      (format t "     * ~a~%" explain))
+
+    (format t "  Web Reference:~%")
+    (dolist (web webs)
+      (format t "     * ~a~%" (gethash "key" web))
+      (format t "       ~{~a ~^~}~%" (gethash "value" web)))))
