@@ -1,3 +1,3 @@
 (defpackage :cl-ydcv
   (:use :cl)
-  (:export :yd))
+  (:export :yd :ydcv))

@@ -46,3 +46,8 @@
     (dolist (web webs)
       (format t "     * ~a~%" (gethash "key" web))
       (format t "       ~{~a ~^~}~%" (gethash "value" web)))))
+
+(defun ydcv ()
+  (let ((words (cdr sb-ext:*posix-argv*)))
+    (dolist (word words)
+      (yd word))))
