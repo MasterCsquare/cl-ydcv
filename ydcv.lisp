@@ -1,7 +1,7 @@
 (in-package :cl-ydcv)
 
-(defvar app-id "08188dc4f9645BC5")
-(defvar app-key "gOXQoC1eDNtn8Ls6MOaFavdLLLk6Qq1e")
+(defvar app-id "281fc92dfed3dc9f")
+(defvar app-key "AGlLEKYhKv8RosZ3DulAAYnZLwVMNO3A")
 
 (defun input (q)
   (let ((length (length q)))
