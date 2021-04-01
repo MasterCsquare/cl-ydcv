@@ -1,6 +1,7 @@
 (defsystem :cl-ydcv
   :serial t
   :depends-on (#:dexador
+	       #:clache
 	       #:cl-readline
                #:crypto-shortcuts
 	       #:jonathan
