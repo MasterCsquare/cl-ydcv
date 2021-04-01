@@ -48,8 +48,7 @@
 					  ("signType" . "v3")
 					  ("curtime" . ,time))))
 	       (result (jonathan:parse body :as :hash-table))
-	       (basic (gethash "basic" result))
-	       (output))
+	       (basic (gethash "basic" result)))
 
 	  (if basic
 	      (let* ((translation (car (gethash "translation" result)))
