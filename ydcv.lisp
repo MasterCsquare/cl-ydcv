@@ -35,8 +35,7 @@
 	(let* ((salt (write-to-string (uuid:make-v1-uuid)))
 	       (time (write-to-string (local-time:timestamp-to-unix (local-time:now))))
 	       (sign (cryptos:sha256
-		      (concatenate
-		       'string
+		      (uiop:strcat
 		       app-id (input word) salt time app-key)))
 	       (body (dex:post "https://openapi.youdao.com/api"
 			       :content `(("q" . ,word)
@@ -73,11 +72,11 @@
     (yd word)))
 
 (defun ydcv ()
-  (let ((words (cdr sb-ext:*posix-argv*)))
+  (let ((words (uiop:command-line-arguments)))
     (if words
 	(yds words)
 	(loop
 	  (let ((input (rl:readline :prompt "> " :add-history t)))
 	    (if input
 		(yds (uiop:split-string input))
-		(sb-ext:exit)))))))
+		(uiop:quit)))))))
