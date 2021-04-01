@@ -50,5 +50,11 @@
 
 (defun ydcv ()
   (let ((words (cdr sb-ext:*posix-argv*)))
-    (dolist (word words)
-      (yd word))))
+    (if words
+	(dolist (word words)
+	  (yd word))
+	(loop
+	  (let ((input (rl:readline :prompt "> " :add-history t)))
+	    (if input
+		(yd input)
+		(sb-ext:exit)))))))

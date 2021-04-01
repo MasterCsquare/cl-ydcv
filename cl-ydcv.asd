@@ -1,6 +1,7 @@
 (defsystem :cl-ydcv
   :serial t
   :depends-on (#:dexador
+	       #:cl-readline
                #:crypto-shortcuts
 	       #:jonathan
 	       #:uuid
