@@ -1,13 +1,19 @@
 (in-package :cl-ydcv)
 
-(defvar app-id "281fc92dfed3dc9f")
-(defvar app-key "AGlLEKYhKv8RosZ3DulAAYnZLwVMNO3A")
+(defvar *app-id* "281fc92dfed3dc9f")
+(defvar *app-key* "AGlLEKYhKv8RosZ3DulAAYnZLwVMNO3A")
 
-(defvar cache-directory "~/.ydcache/")
+(defvar *cache-directory* "~/.ydcache/")
 (defvar *yd-store*
   (progn
-    (ensure-directories-exist cache-directory)
-    (make-instance 'clache:file-store :directory cache-directory)))
+    (ensure-directories-exist *cache-directory*)
+    (make-instance 'clache:file-store :directory *cache-directory*)))
+
+(defun string-uuid ()
+  (write-to-string (uuid:make-v1-uuid)))
+
+(defun string-time-now ()
+  (write-to-string (local-time:timestamp-to-unix (local-time:now))))
 
 (defun input (q)
   (let ((length (length q)))
@@ -18,7 +24,24 @@
 	 (subseq q (- length 10) length))
 	q)))
 
-(let ((output))
+(defun request-youdao (word)
+  (let* ((salt (string-uuid))
+	 (time (string-time-now))
+	 (sign (cryptos:sha256
+		(uiop:strcat
+		 *app-id* (input word) salt time *app-key*))))
+    (jonathan:parse
+     (dex:post "https://openapi.youdao.com/api"
+	       :content `(("q" . ,word)
+			  ("from" . "en")
+			  ("to" . "zh-CHS")
+			  ("appKey" . ,*app-id*)
+			  ("salt" . ,salt)
+			  ("sign" . ,sign)
+			  ("signType" . "v3")
+			  ("curtime" . ,time))) :as :hash-table)))
+
+(let (output)
   (defun yd-collect (control-string &rest format-arguments)
     (setf output (uiop:strcat output (apply #'format nil control-string format-arguments))))
   (defun yd-print ()
@@ -32,28 +55,14 @@
     (if cache
 	(format t cache)
 
-	(let* ((salt (write-to-string (uuid:make-v1-uuid)))
-	       (time (write-to-string (local-time:timestamp-to-unix (local-time:now))))
-	       (sign (cryptos:sha256
-		      (uiop:strcat
-		       app-id (input word) salt time app-key)))
-	       (body (dex:post "https://openapi.youdao.com/api"
-			       :content `(("q" . ,word)
-					  ("from" . "en")
-					  ("to" . "zh-CHS")
-					  ("appKey" . ,app-id)
-					  ("salt" . ,salt)
-					  ("sign" . ,sign)
-					  ("signType" . "v3")
-					  ("curtime" . ,time))))
-	       (result (jonathan:parse body :as :hash-table))
-	       (basic (gethash "basic" result)))
+	(let* ((result (request-youdao word))
+	       (translation (car (gethash "translation" result)))
+	       (basic (gethash "basic" result))
+	       (webs (gethash "web" result)))
 
 	  (if basic
-	      (let* ((translation (car (gethash "translation" result)))
-		     (explains (gethash "explains" basic))
-		     (phonetic (gethash "phonetic" basic))
-		     (webs (gethash "web" result)))
+	      (let ((explains (gethash "explains" basic))
+		    (phonetic (or (gethash "phonetic" basic) "")))
 		(yd-collect "~a [~a] ~a~%" word phonetic translation)
 		(yd-collect "  Word Explanation:~%")
 		(dolist (explain explains)
